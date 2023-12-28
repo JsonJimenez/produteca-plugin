@@ -50,9 +50,6 @@ class ProductecaService {
   public function createSale($client, $data, $finalItems, $order_id) {
     $dataSale = $this->managerProduteca->createModelSale($data, $finalItems, $order_id);
     $response = $this->conectionProduteca->createSale($client, $dataSale);
-    error_log('Client: ' . print_r($client, true));
-    error_log('Data Sale: ' . print_r($dataSale, true));
-    error_log('Response: ' . print_r($response, true));
     if (is_array($response)) {
       $saleResponse = end($response);
       if (is_object($saleResponse[0])) {

@@ -4,6 +4,7 @@ namespace WPProduteca;
 
 use WPProduteca\Admin\ConnectionFormConfig;
 use WPProduteca\Admin\ConnectionFormProduteca;
+use WPProduteca\Admin\DashboardProduteca;
 use WPProduteca\Alter\CoreWoocomerceAlter;
 use WPProduteca\Alter\FieldsWoocomerceAlter;
 use WPProduteca\Alter\WoocomerceAlterCheckout;
@@ -47,6 +48,7 @@ class Core {
   public function forms() {
     new ConnectionFormConfig();
     new ConnectionFormProduteca();
+    new DashboardProduteca();
   }
 
   /**

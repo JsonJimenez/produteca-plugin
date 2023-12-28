@@ -57,12 +57,19 @@ class ProductsImportCron {
       foreach ($products as $product) {
         $client = $this->productService->searchIncolumn($clients, $product->meta_value,  'clientid');
         if ($client) {
-          update_post_meta($product->ID, 'mobbex_marketplace_cuit', $client['cuit']);
-          update_post_meta($product->ID, 'mbbx_enable_multisite', TRUE);
+          $product = wc_get_product( $product->ID );
+          $data_store = $product->get_data_store();
+          $shipping_class_id = $data_store->get_shipping_class_id_by_slug( wc_clean( $client['slugflexibleshipping'] ) );
+          $product->set_shipping_class_id( $shipping_class_id ); // Set the shipping class ID
+          $product->update_meta_data('mobbex_marketplace_cuit', $client['cuit']);
+          $product->save();
+          //update_post_meta($product->ID, 'mobbex_marketplace_cuit', $client['cuit']);
+
+          /*update_post_meta($product->ID, 'mbbx_enable_multisite', TRUE);
           update_post_meta($product->ID, 'mbbx_store_name', $client['mbbx_store_name']);
           update_post_meta($product->ID, 'mbbx_api_key', $client['mbbx_api_key']);
-          update_post_meta($product->ID, 'mbbx_access_token', $client['mbbx_access_token']);
-          $this->save_store('post', $client, $product->ID);
+          update_post_meta($product->ID, 'mbbx_access_token', $client['mbbx_access_token']);*/
+          //$this->save_store('post', $client, $product->ID);
         }
       }
     }
@@ -70,7 +77,7 @@ class ProductsImportCron {
 
   public function save_store($meta_type, $client, $id)
   {
-    $stores = get_option('mbbx_stores') ?: [];
+    /*$stores = get_option('mbbx_stores') ?: [];
 
     $store = md5($client['mbbxapikey'] . '|' . $client['mbbxaccesstoken']);
 
@@ -87,6 +94,6 @@ class ProductsImportCron {
         ];
         update_option('mbbx_stores', $stores) && update_metadata($meta_type, $id, 'mbbx_store', $new_store);
       }
-    }
+    }*/
   }
 }

@@ -50,8 +50,11 @@ class ManagerProduteca {
     $product->set_length($item->dimensions->length);
     $product->set_weight($item->dimensions->weight);
     $product->set_gallery_image_ids($idFIles);
+    $data_store = $product->get_data_store();
+    $shipping_class_id = $data_store->get_shipping_class_id_by_slug( wc_clean( $client['slugflexibleshipping'] ) );
+    $product->set_shipping_class_id( $shipping_class_id );
     $product->save();
-    $this->save_store('post', $client, $product->get_id());
+    //$this->save_store('post', $client, $product->get_id());
     return $product;
   }
 
@@ -122,8 +125,11 @@ class ManagerProduteca {
       }
     }
     update_post_meta( $product_id, '_product_attributes', $product_attributes );
+    $data_store = $product->get_data_store();
+    $shipping_class_id = $data_store->get_shipping_class_id_by_slug( wc_clean( $client['slugflexibleshipping'] ) );
+    $product->set_shipping_class_id( $shipping_class_id );
     $product->save();
-    $this->save_store('post', $client, $product->get_id());
+    //$this->save_store('post', $client, $product);
     foreach ($item->variations as $variationByItems) {
       $variation = new WC_Product_Variation();
       $variation->set_parent_id($product_id);
@@ -367,7 +373,7 @@ class ManagerProduteca {
 
   public function save_store($meta_type, $client, $id)
   {
-    $stores = get_option('mbbx_stores') ?: [];
+    /*$stores = get_option('mbbx_stores') ?: [];
 
     $store = md5($client['mbbxapikey'] . '|' . $client['mbbxaccesstoken']);
 
@@ -384,6 +390,6 @@ class ManagerProduteca {
         ];
         update_option('mbbx_stores', $stores) && update_metadata($meta_type, $id, 'mbbx_store', $new_store);
       }
-    }
+    }*/
   }
 }

@@ -117,7 +117,11 @@ class ConnectionFormConfig {
           'field' => 'text',
           'title' => 'Cuit'
         ],
-        'mbbxstorename' => [
+        'slugflexibleshipping' => [
+          'field' => 'text',
+          'title' => 'Slug Flexible Shipping'
+        ]
+        /*'mbbxstorename' => [
           'field' => 'text',
           'title' => 'Nombre tienda Mobbex'
         ],
@@ -128,7 +132,7 @@ class ConnectionFormConfig {
         'mbbxaccesstoken' => [
           'field' => 'text',
           'title' => 'Token de Acceso Mobbex'
-        ],
+        ],*/
       ],
     ];
     $sections = [];
