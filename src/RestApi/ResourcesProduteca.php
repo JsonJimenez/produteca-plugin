@@ -37,7 +37,7 @@ class ResourcesProduteca {
         'api/v1',
         '/produteca/callback',
         array(
-          'methods' => 'GET',
+          'methods' => 'POST',
           'callback' => array( $this, 'get' ),
         ),
       );
