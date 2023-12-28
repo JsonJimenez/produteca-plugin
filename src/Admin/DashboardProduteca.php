@@ -228,6 +228,7 @@ class DashboardProduteca
         $query .= "AND produteca.meta_value = {$filters['id_produteca']}";
       }
     }
+    $query .= "ORDER BY p.post_date DESC";
 
     return $query;
   }

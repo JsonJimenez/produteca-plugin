@@ -7,6 +7,7 @@ use WP_Error;
 use WP_REST_Request;
 use WP_REST_Response;
 use WP_REST_Server;
+use WPProduteca\Services\ManagerProduteca;
 use WPProduteca\Services\ProductecaService;
 
 /**
@@ -17,6 +18,7 @@ class ResourcesProduteca {
    * @var ProductecaService
    */
   protected $productService;
+  protected $managerProduteca;
 
   /**
    *
@@ -25,6 +27,7 @@ class ResourcesProduteca {
   )
   {
     $this->productService = new ProductecaService();
+    $this->managerProduteca = new ManagerProduteca();
     $this->init();
   }
 
@@ -56,6 +59,7 @@ class ResourcesProduteca {
       'code' => 400
     ];
     $type = $parameters['resourceType'];
+    $companyId = $parameters['companyId'];
     if ($type == 'salesOrder') {
       $integrationId = $parameters['resourceId'];
       $this->productService->updateOrder($integrationId);
@@ -73,13 +77,12 @@ class ResourcesProduteca {
       try {
         if ($productPostId && !empty($productPostId)) {
           $prodct = wc_get_product($productPostId[0]->post_id);
-          $client = get_post_meta($productPostId[0]->post_id, 'client_produteca', true );
           $update = [
             'status' => 'no',
-            'client' => $client
+            'client' => $companyId
           ];
-          if ($prodct && $client) {
-            $clientLoad = $this->productService->getClientByCLientId($client);
+          if ($prodct && $companyId) {
+            $clientLoad = $this->productService->getClientByCLientId($companyId);
             $productRest = $this->productService->getProduct($clientLoad, $productId);
             $this->productService->updateProduct($prodct, $productRest);
             $update['status'] = 'si';
@@ -92,12 +95,20 @@ class ResourcesProduteca {
           ];
         }
         else {
+          $clientLoad = $this->productService->getClientByCLientId($companyId);
+          $productRest = $this->productService->getProduct($clientLoad, $productId);
+          if ($productRest->hasVariations) {
+            $this->managerProduteca->createProductVariation($productRest, $clientLoad);
+          }
+          else {
+            $this->managerProduteca->createProduct($productRest, $clientLoad);
+          }
           $response = [
             'status' => 'success',
             'code' => 200,
-            'message' => 'Porducto no existe'
+            'message' => 'Producto creado con exito'
           ];
-          $this->productService->insertProducts();
+
         }
         return new WP_REST_Response($response, 200);
       }catch (\Exception $exception) {
