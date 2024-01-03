@@ -63,6 +63,7 @@ class ConnectionFormConfig {
 
   public function listCLients() {
     $sections = $this->getCurrentClients();
+    $this->sendSaleOrder(25768);
     ?>
     <div class="wrap">
       <form method="post" action="options.php">
@@ -90,6 +91,7 @@ class ConnectionFormConfig {
 
   public function registerSettings () {
     $sections = $this->getCurrentClients();
+
     foreach ($sections as $section => $item) {
       add_settings_section($section, $section, function (){
         echo '<p>Configuración produteca</p>';
@@ -168,7 +170,7 @@ class ConnectionFormConfig {
     else {
       $costforProduct = FALSE;
     }
-    $existeSale = $order->get_meta('produteca_sale_id');
+    $existeSale = FALSE;
     $status = TRUE;
     if ($status && !$existeSale) {
       $finalItems = [];

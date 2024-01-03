@@ -63,13 +63,7 @@ class ProductsImportCron {
           $product->set_shipping_class_id( $shipping_class_id ); // Set the shipping class ID
           $product->update_meta_data('mobbex_marketplace_cuit', $client['cuit']);
           $product->save();
-          //update_post_meta($product->ID, 'mobbex_marketplace_cuit', $client['cuit']);
-
           update_post_meta($product->ID, 'mbbx_enable_multisite', FALSE);
-          /*update_post_meta($product->ID, 'mbbx_store_name', $client['mbbx_store_name']);
-          update_post_meta($product->ID, 'mbbx_api_key', $client['mbbx_api_key']);
-          update_post_meta($product->ID, 'mbbx_access_token', $client['mbbx_access_token']);*/
-          //$this->save_store('post', $client, $product->ID);
         }
       }
     }

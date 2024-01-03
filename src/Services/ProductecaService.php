@@ -49,13 +49,14 @@ class ProductecaService {
 
   public function createSale($client, $data, $finalItems, $order_id) {
     $dataSale = $this->managerProduteca->createModelSale($data, $finalItems, $order_id);
-    $response = $this->conectionProduteca->createSale($client, $dataSale);
+    d($dataSale);
+    /*$response = $this->conectionProduteca->createSale($client, $dataSale);
     if (is_array($response)) {
       $saleResponse = end($response);
       if (is_object($saleResponse[0])) {
         update_post_meta($order_id, 'produteca_sale_id', $saleResponse[0]->id);
       }
-    }
+    }*/
   }
 
   public function updateOrder($integrationId) {

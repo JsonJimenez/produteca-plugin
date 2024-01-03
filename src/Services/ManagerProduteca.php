@@ -14,9 +14,12 @@ class ManagerProduteca {
   protected $configStore;
 
   public function __construct()
-  {}
+  {
+    $this->categoryJson = new CategoryJson();
+  }
 
   public function createProduct($item, $client) {
+
     $exist_sku = wc_get_product_id_by_sku($item->variations[0]->sku);
     if ($exist_sku) {
       return wc_get_product();
@@ -34,7 +37,13 @@ class ManagerProduteca {
     $product->update_meta_data('client_produteca', $client['clientid']);
     $product->update_meta_data('mobbex_marketplace_cuit', $client['cuit']);
     //$product->update_meta_data('mbbx_enable_multisite', TRUE);
-
+    $categoryProduct = $this->categoryJson->getTagByPath($item->listingSettings->categoryId);
+    if ($categoryProduct) {
+      $tag = get_term_by('name', $categoryProduct->name, 'product_cat');
+      if ($tag) {
+        $product->set_category_ids([$tag->term_id]);
+      }
+    }
     $idFile = $this->uploadImage($item->thumbnail);
     if ($idFile) {
       $product->set_image_id($idFile);
@@ -61,6 +70,7 @@ class ManagerProduteca {
   }
 
   public function createProductVariation($item, $client) {
+
     // Create a variable product with a color attribute.
     $product = new WC_Product_Variable();
     $product->set_name($item->name);
@@ -73,6 +83,13 @@ class ManagerProduteca {
     $product->update_meta_data('variation_produteca_only', $item->variations[0]->id);
     $product->update_meta_data('client_produteca', $client['clientid']);
     $product->update_meta_data('mobbex_marketplace_cuit', $client['cuit']);
+    $categoryProduct = $this->categoryJson->getTagByPath($item->listingSettings->categoryId);
+    if ($categoryProduct) {
+      $tag = get_term_by('name', $categoryProduct->name, 'product_cat');
+      if ($tag) {
+        $product->set_category_ids([$tag->term_id]);
+      }
+    }
     //$product->update_meta_data('mbbx_enable_multisite', TRUE);
     $idFile = $this->uploadImage($item->thumbnail);
     if ($idFile) {
@@ -206,9 +223,10 @@ class ManagerProduteca {
 
   public function getMobbexTransaction($order_id) {
     global $wpdb;
-    $mobbex_transaction = $wpdb->get_results("
-        SELECT * FROM wp_mobbex_transaction WHERE order_id".$order_id);
-    return $mobbex_transaction;
+    return $wpdb->get_results($wpdb->prepare(
+      "SELECT `childs`, `source_reference` FROM `{$wpdb->prefix}mobbex_transaction` WHERE `order_id` < %d LIMIT 1",
+      $order_id
+    )) ?? [];
   }
 
   public function createModelSale($data, $finalItems, $order_id) {
@@ -242,20 +260,23 @@ class ManagerProduteca {
     $firstSixDigits = 000000;
     $lastFourDigits = 0000;
     $identification = '00000000';
+    $nameCarg = $fullName;
 
     $mobbex_transaction = $this->getMobbexTransaction($order_id);
-
     if ($mobbex_transaction) {
+
         $result = reset($mobbex_transaction);
         $childs_json = json_decode($result->childs);
-        
-        $identification = $childs_json[0]->entity->payment->source->cardholder->identification;
-        $number = $childs_json[0]->entity->payment->source->number;
+
+        $identification = $childs_json[0]->payment->source->cardholder->identification;
+        $number = $childs_json[0]->payment->source->number;
         $paymentNetwork = $result->source_reference === 'visa.debit' ? 'DebitCard' : 'CreditCard';
 
-        $number_parts = explode('*', $number);
+        $number_parts = explode('****', $number);
+
         $firstSixDigits = $number_parts[0];
         $lastFourDigits = $number_parts[1];
+        $nameCarg = $childs_json[0]->payment->source->cardholder->name;
     }
 
 
@@ -301,7 +322,7 @@ class ManagerProduteca {
         [
           'amount' => $totalAmoun + $shipping_total,
           'status' => 'Approved',
-          'method' => "CreditCard",
+          'method' => $paymentNetwork,
           'integrations' => [],
           'installments' => 1,
           'card' => [
@@ -310,7 +331,7 @@ class ManagerProduteca {
             'lastFourDigits' => $lastFourDigits,
             'cardholderIdentificationNumber' => $identification,
             'cardholderIdentificationType' => 'CI',
-            'cardholderName' => $fullName,
+            'cardholderName' => $nameCarg,
           ],
         ]
       ],
