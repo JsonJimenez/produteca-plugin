@@ -107,7 +107,8 @@ class ManagerProduteca {
     $product->set_height($item->dimensions->height);
     $product->set_length($item->dimensions->length);
     $weight = $item->dimensions->weight ? $item->dimensions->weight / 100 : 0;
-    $product->set_weight($weight);
+    $convert = $weight ? number_format($weight, 1, ',', '.') : 0;
+    $product->set_weight($convert);
     $product->save();
 
     $attributes = [];
@@ -199,7 +200,8 @@ class ManagerProduteca {
     $product->set_height($item->dimensions->height);
     $product->set_length($item->dimensions->length);
     $weight = $item->dimensions->weight ? $item->dimensions->weight / 1000 : 0;
-    $product->set_weight($weight);
+    $convert = $weight ? number_format($weight, 1, ',', '.') : 0;
+    $product->set_weight($convert);
     $product->set_gallery_image_ids($idFIles);
     $product->save();
     if ($item->hasVariations) {
