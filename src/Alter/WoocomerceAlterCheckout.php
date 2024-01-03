@@ -65,14 +65,18 @@ class WoocomerceAlterCheckout
           $finalItems[$client][] = $item;
         }
       }
-
+      $responseItems = [];
       if ($finalItems) {
         foreach ($finalItems as $key => $item) {
           $client = $this->productService->getClientByCLientId($key);
           if ($client) {
-            $this->productService->createSale($client, $order->get_data(), $item, $order_id);
+            $responseItems[] = $this->productService->createSale($client, $order->get_data(), $item, $order_id);
           }
         }
+      }
+
+      if ($responseItems) {
+        update_post_meta($order_id, 'produteca_sale_id', json_encode($responseItems));
       }
     }
   }

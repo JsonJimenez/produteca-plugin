@@ -125,7 +125,7 @@ class FieldsWoocomerceAlter {
     $cost_sale_json = $order->get_meta('cost_sale_json');
 
     echo '<div>';
-    woocommerce_wp_text_input(array(
+    woocommerce_wp_textarea_input(array(
       'id' => 'produteca_sale_id',
       'label' => 'Venta ID Produteca',
       'value' => $shippingdate,

@@ -238,7 +238,13 @@ class ManagerProduteca {
     $shipping_total = 0;
     foreach ($finalItems as $item) {
       /* @var WC_Order_Item_Product $item */
-      $product = wc_get_product($item->get_product_id());
+      if ($variation = $item->get_variation_id()) {
+        $product = wc_get_product($variation);
+      }
+      else {
+        $product = wc_get_product($item->get_product_id());
+      }
+
       $totalAmoun += (int)$item->get_total();
       $shipping_total += $item->costshipping;
       $lines[] = [

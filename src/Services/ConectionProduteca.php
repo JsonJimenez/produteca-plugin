@@ -77,7 +77,6 @@ class ConectionProduteca {
     $this->request2->setBody($body);
     try {
       $response = $this->request2->send();
-      error_log($response->getBody());
       if ($response->getStatus() == 200) {
         return json_decode($response->getBody());
       }

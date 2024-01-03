@@ -3,6 +3,7 @@
 namespace WPProduteca\Admin;
 
 use WC_Shipping;
+use WPProduteca\Alter\WoocomerceAlterCheckout;
 use WPProduteca\Services\ProductecaService;
 
 /**
@@ -25,7 +26,7 @@ class ConnectionFormConfig {
   public function __construct(
   )
   {
-    $this->productService = new ProductecaService();
+    $this->productService = new WoocomerceAlterCheckout();
     $this->init();
   }
 
@@ -63,6 +64,8 @@ class ConnectionFormConfig {
 
   public function listCLients() {
     $sections = $this->getCurrentClients();
+    //$this->productService->sendSaleOrder(25946);
+    //update_post_meta(25946, 'produteca_sale_id', '');
     ?>
     <div class="wrap">
       <form method="post" action="options.php">
@@ -123,18 +126,6 @@ class ConnectionFormConfig {
           'field' => 'text',
           'title' => 'Slug Flexible Shipping'
         ]
-        /*'mbbxstorename' => [
-          'field' => 'text',
-          'title' => 'Nombre tienda Mobbex'
-        ],
-        'mbbxapikey' => [
-          'field' => 'text',
-          'title' => 'Clave de API Mobbex'
-        ],
-        'mbbxaccesstoken' => [
-          'field' => 'text',
-          'title' => 'Token de Acceso Mobbex'
-        ],*/
       ],
     ];
     $sections = [];
