@@ -53,7 +53,7 @@ class ProductecaService {
     if (is_array($response)) {
       $saleResponse = end($response);
       if (is_object($saleResponse[0])) {
-        update_post_meta($order_id, 'produteca_sale_id', wc_clean($saleResponse[0]->id));
+        update_post_meta($order_id, 'produteca_sale_id', $saleResponse[0]->id);
       }
     }
   }

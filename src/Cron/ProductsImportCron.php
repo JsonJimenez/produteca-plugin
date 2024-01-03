@@ -65,8 +65,8 @@ class ProductsImportCron {
           $product->save();
           //update_post_meta($product->ID, 'mobbex_marketplace_cuit', $client['cuit']);
 
-          /*update_post_meta($product->ID, 'mbbx_enable_multisite', TRUE);
-          update_post_meta($product->ID, 'mbbx_store_name', $client['mbbx_store_name']);
+          update_post_meta($product->ID, 'mbbx_enable_multisite', FALSE);
+          /*update_post_meta($product->ID, 'mbbx_store_name', $client['mbbx_store_name']);
           update_post_meta($product->ID, 'mbbx_api_key', $client['mbbx_api_key']);
           update_post_meta($product->ID, 'mbbx_access_token', $client['mbbx_access_token']);*/
           //$this->save_store('post', $client, $product->ID);

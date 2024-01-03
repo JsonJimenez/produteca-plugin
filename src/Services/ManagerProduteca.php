@@ -8,6 +8,7 @@ use WC_Product;
 use WC_Product_Simple;
 use WC_Product_Variable;
 use WC_Product_Variation;
+use WC_Shipping;
 
 class ManagerProduteca {
   protected $configStore;
@@ -32,7 +33,7 @@ class ManagerProduteca {
     $product->update_meta_data('variation_produteca_only', $item->variations[0]->id);
     $product->update_meta_data('client_produteca', $client['clientid']);
     $product->update_meta_data('mobbex_marketplace_cuit', $client['cuit']);
-    $product->update_meta_data('mbbx_enable_multisite', TRUE);
+    //$product->update_meta_data('mbbx_enable_multisite', TRUE);
 
     $idFile = $this->uploadImage($item->thumbnail);
     if ($idFile) {
@@ -48,7 +49,8 @@ class ManagerProduteca {
     $product->set_width($item->dimensions->width);
     $product->set_height($item->dimensions->height);
     $product->set_length($item->dimensions->length);
-    $product->set_weight($item->dimensions->weight);
+    $weight = $item->dimensions->weight ? $item->dimensions->weight / 100 : 0;
+    $product->set_weight($weight);
     $product->set_gallery_image_ids($idFIles);
     $data_store = $product->get_data_store();
     $shipping_class_id = $data_store->get_shipping_class_id_by_slug( wc_clean( $client['slugflexibleshipping'] ) );
@@ -71,7 +73,7 @@ class ManagerProduteca {
     $product->update_meta_data('variation_produteca_only', $item->variations[0]->id);
     $product->update_meta_data('client_produteca', $client['clientid']);
     $product->update_meta_data('mobbex_marketplace_cuit', $client['cuit']);
-    $product->update_meta_data('mbbx_enable_multisite', TRUE);
+    //$product->update_meta_data('mbbx_enable_multisite', TRUE);
     $idFile = $this->uploadImage($item->thumbnail);
     if ($idFile) {
       $product->set_image_id($idFile);
@@ -87,7 +89,8 @@ class ManagerProduteca {
     $product->set_width($item->dimensions->width);
     $product->set_height($item->dimensions->height);
     $product->set_length($item->dimensions->length);
-    $product->set_weight($item->dimensions->weight);
+    $weight = $item->dimensions->weight ? $item->dimensions->weight / 100 : 0;
+    $product->set_weight($weight);
     $product->save();
 
     $attributes = [];
@@ -178,7 +181,8 @@ class ManagerProduteca {
     $product->set_width($item->dimensions->width);
     $product->set_height($item->dimensions->height);
     $product->set_length($item->dimensions->length);
-    $product->set_weight($item->dimensions->weight);
+    $weight = $item->dimensions->weight ? $item->dimensions->weight / 1000 : 0;
+    $product->set_weight($weight);
     $product->set_gallery_image_ids($idFIles);
     $product->save();
     if ($item->hasVariations) {
@@ -210,15 +214,13 @@ class ManagerProduteca {
   public function createModelSale($data, $finalItems, $order_id) {
     $lines = [];
     $customData = $this->loadMetaValuesChekout($order_id);
+    $totalAmoun = 0;
+    $shipping_total = 0;
     foreach ($finalItems as $item) {
       /* @var WC_Order_Item_Product $item */
       $product = wc_get_product($item->get_product_id());
-      if($item->get_variation_id()) {
-        $variationId = get_post_meta($item->get_variation_id(), 'produteca_variation', true );
-      }
-      else {
-        $variationId = get_post_meta($item->get_product_id(), 'variation_produteca_only', true );
-      }
+      $totalAmoun += (int)$item->get_total();
+      $shipping_total += $item->costshipping;
       $lines[] = [
         'price' => $item->get_total() / $item->get_quantity(),
         'quantity' => $item->get_quantity(),
@@ -227,12 +229,11 @@ class ManagerProduteca {
     }
     $fullName = "{$data['billing']['first_name']} {$data['billing']['last_name']}";
     $state = $this->getState($data['billing']['country'], $data['billing']['state']);
-    $shipping_total = $data['shipping_total'] ?? 0;
 
     $pay_method = str_replace(' ', '', $data['payment_method_title']);
 
     if (strpos($pay_method, 'Mobbex') !== false) {
-      $pay_method == "CreditCard";
+      $pay_method = "CreditCard";
     }
 
     //$pay_method == "CreditCard";
@@ -246,12 +247,11 @@ class ManagerProduteca {
 
     if ($mobbex_transaction) {
         $result = reset($mobbex_transaction);
-        
         $childs_json = json_decode($result->childs);
         
         $identification = $childs_json[0]->entity->payment->source->cardholder->identification;
         $number = $childs_json[0]->entity->payment->source->number;
-        $paymentNetwork = $childs_json[0]->entity->payment->source->reference;
+        $paymentNetwork = $result->source_reference === 'visa.debit' ? 'DebitCard' : 'CreditCard';
 
         $number_parts = explode('*', $number);
         $firstSixDigits = $number_parts[0];
@@ -299,7 +299,7 @@ class ManagerProduteca {
       'lines' => $lines,
       'payments' => [
         [
-          'amount' => (float)$data['total'] + $shipping_total,
+          'amount' => $totalAmoun + $shipping_total,
           'status' => 'Approved',
           'method' => "CreditCard",
           'integrations' => [],

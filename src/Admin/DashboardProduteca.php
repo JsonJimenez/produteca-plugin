@@ -177,8 +177,8 @@ class DashboardProduteca
         'id_product' => $latestpost->id_produteca,
         'actions' => "
           <div>
-            <p><a href='/wp-admin/post.php?post={$latestpost->id}'>Editar</a></p>
-            <p><a href='/{$url}'>Ver</a></p>
+            <p><a href='/wp-admin/post.php?post={$latestpost->id}&action=edit'>Editar</a></p>
+            <p><a href='/producto/{$url}'>Ver</a></p>
           </div>
         "
       ];
