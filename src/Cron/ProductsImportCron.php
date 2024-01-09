@@ -2,6 +2,7 @@
 
 namespace WPProduteca\Cron;
 
+use WP_Query;
 use WPProduteca\Services\ProductecaService;
 
 /**
@@ -30,6 +31,7 @@ class ProductsImportCron {
     add_action('produteca_products', [$this, 'pr_import_productos']);
     add_action('produteca_products_all', [$this, 'pr_import_productos_all']);
     add_action('produteca_update_cuit', [$this, 'updateCoutMobbex']);
+    add_action('produteca_update_cuit_default', [$this, 'updateCoutMobbexDefault']);
   }
 
   /**
@@ -65,6 +67,28 @@ class ProductsImportCron {
           $product->save();
           update_post_meta($product->ID, 'mbbx_enable_multisite', FALSE);
         }
+      }
+    }
+  }
+
+  public function updateCoutMobbexDefault() {
+    $args = array(
+      'post_type'  => 'product',
+      'posts_per_page'    => 300,
+      'meta_query' => array(
+        array(
+          'key'     => 'mobbex_marketplace_cuit',
+          'compare' => 'NOT EXISTS'
+        )
+      ),
+    );
+
+// query
+    $the_query = new WP_Query( $args );
+
+    if ($the_query->have_posts()) {
+      foreach ($the_query->posts as $post) {
+        update_post_meta($post->ID, 'mobbex_marketplace_cuit', get_option('produtecaapioption_0_defaultcuit'));
       }
     }
   }

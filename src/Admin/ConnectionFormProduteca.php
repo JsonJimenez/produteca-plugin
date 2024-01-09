@@ -3,6 +3,8 @@
 
 namespace WPProduteca\Admin;
 
+use WP_Query;
+
 class ConnectionFormProduteca {
   public function __construct(
   )
@@ -87,6 +89,10 @@ class ConnectionFormProduteca {
         'apiurlsaleconsult' => [
           'field' => 'text',
           'title' => 'Consulta de venta'
+        ],
+        'defaultcuit' => [
+          'field' => 'text',
+          'title' => 'Cuit'
         ],
       ],
     ];
