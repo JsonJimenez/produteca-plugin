@@ -35,6 +35,8 @@ class FieldsWoocomerceAlter {
     add_action( 'woocommerce_save_product_variation', [$this, 'saveDataVariation']);
     //Add hidden facture
     add_action( 'woocommerce_admin_order_data_after_order_details', [$this, 'addFieldsOrder']);
+    add_action( 'woocommerce_process_shop_order_meta', [$this, 'saveFieldsOrder'] );
+
     //add_action( 'woocommerce_thankyou', [$this, 'sendSaleOrder']);
   }
 
@@ -139,5 +141,12 @@ class FieldsWoocomerceAlter {
     ));
     echo '</div>';
 
+  }
+
+  public function saveFieldsOrder($order_id)
+  {
+    $order = wc_get_order( $order_id );
+    $order->update_meta_data( 'produteca_sale_id', wc_clean( $_POST[ 'produteca_sale_id' ] ) );
+    $order->save();
   }
 }

@@ -58,7 +58,7 @@ class ManagerProduteca {
     $product->set_width($item->dimensions->width);
     $product->set_height($item->dimensions->height);
     $product->set_length($item->dimensions->length);
-    $weight = $item->dimensions->weight ? $item->dimensions->weight / 100 : 0;
+    $weight = $item->dimensions->weight ? $item->dimensions->weight / 1000 : 0;
     $product->set_weight($weight);
     $product->set_gallery_image_ids($idFIles);
     $data_store = $product->get_data_store();
@@ -225,10 +225,7 @@ class ManagerProduteca {
 
   public function getMobbexTransaction($order_id) {
     global $wpdb;
-    return $wpdb->get_results($wpdb->prepare(
-      "SELECT `childs`, `source_reference` FROM `{$wpdb->prefix}mobbex_transaction` WHERE `order_id` < %d LIMIT 1",
-      $order_id
-    )) ?? [];
+    return $wpdb->get_results("SELECT source_number, source_reference, cardholder FROM {$wpdb->prefix}mobbex_transaction WHERE order_id  = {$order_id} LIMIT 1") ?? [];
   }
 
   public function createModelSale($data, $finalItems, $order_id) {
@@ -250,7 +247,7 @@ class ManagerProduteca {
       $lines[] = [
         'price' => $item->get_total() / $item->get_quantity(),
         'quantity' => $item->get_quantity(),
-        'variation' => $product->get_sku(),
+        'variation' => (float)$product->get_meta('variation_produteca_only'),
       ];
     }
     $fullName = "{$data['billing']['first_name']} {$data['billing']['last_name']}";
@@ -272,19 +269,16 @@ class ManagerProduteca {
 
     $mobbex_transaction = $this->getMobbexTransaction($order_id);
     if ($mobbex_transaction) {
+      $result = reset($mobbex_transaction);
+      $cardholder = json_decode($result->cardholder);
+      $identification = $cardholder->identification;
+      $nameCarg = $cardholder->name;
+      $paymentNetwork = $result->source_reference === 'visa.debit' ? 'DebitCard' : 'CreditCard';
 
-        $result = reset($mobbex_transaction);
-        $childs_json = json_decode($result->childs);
+      $number_parts = explode('****', $result->source_number);
 
-        $identification = $childs_json[0]->payment->source->cardholder->identification;
-        $number = $childs_json[0]->payment->source->number;
-        $paymentNetwork = $result->source_reference === 'visa.debit' ? 'DebitCard' : 'CreditCard';
-
-        $number_parts = explode('****', $number);
-
-        $firstSixDigits = $number_parts[0];
-        $lastFourDigits = $number_parts[1];
-        $nameCarg = $childs_json[0]->payment->source->cardholder->name;
+      $firstSixDigits = $number_parts[0];
+      $lastFourDigits = $number_parts[1];
     }
 
 
@@ -335,8 +329,8 @@ class ManagerProduteca {
           'installments' => 1,
           'card' => [
             'paymentNetwork' => $paymentNetwork,
-            'firstSixDigits' => $firstSixDigits,
-            'lastFourDigits' => $lastFourDigits,
+            'firstSixDigits' => (float)$firstSixDigits,
+            'lastFourDigits' => (float)$lastFourDigits,
             'cardholderIdentificationNumber' => $identification,
             'cardholderIdentificationType' => 'CI',
             'cardholderName' => $nameCarg,
@@ -400,25 +394,20 @@ class ManagerProduteca {
     return $values;
   }
 
-  public function save_store($meta_type, $client, $id)
-  {
-    /*$stores = get_option('mbbx_stores') ?: [];
-
-    $store = md5($client['mbbxapikey'] . '|' . $client['mbbxaccesstoken']);
-
-    if (array_key_exists($store, $stores)) {
-      update_metadata($meta_type, $id, 'mbbx_store', $store);
-    }
-    else {
-      if ($client['mbbxapikey'] && $client['mbbxaccesstoken']) {
-        $new_store          = $store;
-        $stores[$new_store] = [
-          'name' => $client['mbbxstorename'],
-          'mbbx_api_key' => $client['mbbxapikey'],
-          'mbbx_access_token' => $client['mbbxaccesstoken']
-        ];
-        update_option('mbbx_stores', $stores) && update_metadata($meta_type, $id, 'mbbx_store', $new_store);
+  public function scaleKg(float $kg, int $decimalPlaces = 2) : string {
+    $scale = [
+      'micrograms' => 1.E9,
+      'milligram' => 1.E6,
+      'gram' => 1.E3,
+      'kilogram' => 1,
+      'ton' => 1.E-3,
+    ];
+    foreach($scale as $unit => $factor){
+      $mass = $kg * $factor;
+      if($mass < 1000) {
+        return round($mass,$decimalPlaces).' '.$unit;
       }
-    }*/
+    }
+    return round($mass,$decimalPlaces).' '.$unit;
   }
 }

@@ -36,9 +36,10 @@ class WoocomerceAlterCheckout
     if ($dataCost) {
       $costforitem = $dataCost;
     }
-    elseif($costforitem = WC()->session->get('costforsale')) {
+    elseif(WC()->session) {
+      $costforitem = WC()->session->get('costforsale');
       update_post_meta($order_id, 'cost_sale_json', json_encode($costforitem));
-      WC()->session->set('costforsale', false);
+      WC()->session->destroy_session();
     }
     else {
       $costforProduct = FALSE;
